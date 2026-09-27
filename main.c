@@ -161,8 +161,12 @@ word performOperation(word valA, word valB, nybble operation) {
         case 0x4:
             result = (valA + valB) >> 1;
             break;
-        // case 0x5:
-        // case 0x6:
+        case 0x5:
+            result = valB;
+            break;
+        case 0x6:
+            result = valA;
+            break;
         // case 0x7:
         case 0x8:
             result = valA & valB;
@@ -385,6 +389,16 @@ const int screenHeightPixels = 8;
 const int screenWidth = screenWidthPixels * pixelSize;
 const int screenHeight = screenHeightPixels * pixelSize;
 
+const int terminalWidth = 16;
+const int terminalHeight = 8;
+
+void writeToRam(Device* self, pointer address, word value) {
+    self->data[address] = value;
+}
+word readFromRam(Device* self, pointer address) {
+    return self->data[address];
+}
+
 void writeToScreen(Device* self, pointer address, word value) {
     pointer x = address % screenWidthPixels;
     pointer y = address / screenWidthPixels;
@@ -396,16 +410,19 @@ void writeToScreen(Device* self, pointer address, word value) {
     DrawRectangle(x*pixelSize, y*pixelSize, pixelSize, pixelSize, colours[value % 8]);
     EndDrawing();
 }
-
 word readFromScreen(Device* self, pointer address) {
     return 0;
 }
 
-void writeToRam(Device* self, pointer address, word value) {
-    self->data[address] = value;
+void writeToTerminal(Device* self, pointer address, word value) {
+    int x = address % terminalWidth;
+    int y = address / terminalWidth;
+
+    printf("\033[%d;%dH%c", y + 1, x + 1, value);
+    fflush(stdout);
 }
-word readFromRam(Device* self, pointer address) {
-    return self->data[address];
+word readFromTerminal(Device* self, pointer address) {
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -435,10 +452,17 @@ int main(int argc, char* argv[]) {
     screen.data = NULL;
     screen.size = screenWidthPixels * screenHeightPixels;
     connectDevice(&screen, 0xFF80);
+
+    Device terminal;
+    terminal.write = writeToTerminal;
+    terminal.read = readFromTerminal;
+    terminal.data = NULL;
+    terminal.size = terminalWidth * terminalHeight;
+    connectDevice(&terminal, 0xFF00);
     /* DEVICES */
 
 
-    loadBinary("z_binaries/test.bin", 0);
+    loadBinary("z_binaries/helloworld.bin", 0);
 
 
     while (!WindowShouldClose()) {

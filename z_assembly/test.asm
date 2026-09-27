@@ -1,4 +1,6 @@
+#define terminalBase 0xFF00
 #define screenBase 0xFF80
+
 #define black 0b000
 #define red 0b001
 #define green 0b010
@@ -14,6 +16,14 @@ ldi r9 green
 sta r9 0
 ldi r9 blue
 sta r9 1
+
+ldi sys_h .terminalBase.h
+ldi sys_l .terminalBase.l
+ldi r9 ';'
+sta r9 0
+sta r9 1
+sta r9 3
+
 wfi;   test
 
 #at 0x100
@@ -23,6 +33,9 @@ data "Hello, World!\0"
 data '\n'
 .32b_int:
 data 0xdeadbeef
+
+#at terminalBase
+.terminalBase:
 
 #at screenBase
 .screenBase:

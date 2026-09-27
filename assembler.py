@@ -39,10 +39,14 @@ while i < len(text):
             current_lexeme += char
         elif char == " ":
             if current_lexeme.strip(" ") != "":
+                if current_lexeme[0] not in ["'", '"']:
+                    current_lexeme = current_lexeme.lower()
                 current_line.append(current_lexeme)
                 current_lexeme = ""
         elif char == "\n":
             if current_lexeme.strip(" ") != "":
+                if current_lexeme[0] not in ["'", '"']:
+                    current_lexeme = current_lexeme.lower()
                 current_line.append(current_lexeme)
                 current_lexeme = ""
             if current_line:
@@ -219,7 +223,7 @@ for ip, tokens in ip_line_pair:
             output[ip] = (opcode << 4) | rd
             output[ip+1] = offset
         elif tokens[0] in cond_only:
-            condition = get_condition_value(tokens[3]) & 15
+            condition = get_condition_value(tokens[1]) & 15
             output[ip] = (opcode << 4)
             output[ip+1] = condition
         elif tokens[0] in rd_immediate:
@@ -227,8 +231,11 @@ for ip, tokens in ip_line_pair:
             try:
                 immediate = int(tokens[2], 0) & 255
             except:
-                print("problem with immediate:", tokens[2])
-                immediate = 0
+                if len(tokens[2]) == 3 and tokens[2][0] == "'" and tokens[2][-1] == "'":
+                    immediate = ord(tokens[2][1])
+                else:
+                    print("problem with immediate:", tokens[2])
+                    immediate = 0
             output[ip] = (opcode << 4) | rd
             output[ip+1] = immediate
         elif tokens[0] in rd_rs_operation:

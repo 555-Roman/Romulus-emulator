@@ -30,9 +30,12 @@
 #define user 1
 
 word regs[maxNybble+1];
+word memoryLimitMin = 0;
+word memoryLimitMax = 0;
+pointer interruptResolverAddress = 0;
+pointer syscallResolverAddress = 0;
 pointer ip = 0;
 pointer ir = 0;
-pointer syscallCalleeAddress = 0;
 state privilege = system;
 bool zeroFlag = false;
 bool carryFlag = false;
@@ -104,7 +107,7 @@ void writeRegs(nybble reg, word value) {
         printf("ERROR:  Privileged register %d is trying to be written to in user mode at ip: %.4x.", reg, ip);
         exit(-1);
     }
-    if (reg == 0 || reg == 2 || reg == 8) return;
+    if (reg == 8) return;
     regs[reg] = value;
 }
 
@@ -234,7 +237,8 @@ void cycle() {
     pointer address;
     word valS, valD, valT, valRam;
     pointer SYS_HL = bytesToPointer(regs[6], regs[7]);
-    pointer HL = bytesToPointer(regs[14], regs[15]);
+    pointer HL = bytesToPointer(regs[14], regs[15]) + bytesToPointer(memoryLimitMin, 0);
+    if (privilege == system) HL = SYS_HL;
     switch (opcode) {
         // WFI
         case 0x0:
@@ -242,65 +246,43 @@ void cycle() {
             break;
         // SRT
         case 0x1:
-            if ((rs & 1) == 0) {
-                ip = syscallCalleeAddress;
-            } else {
-                ip = SYS_HL;
-            }
+            ip = SYS_HL;
             privilege = user;
             break;
-        // IEN
+        // IST
         case 0x2:
-            interruptsEnabled = true;
+            interruptsEnabled = rs & 1;
             break;
-        // IDI
+        // LMN
         case 0x3:
-            interruptsEnabled = false;
+            memoryLimitMin = readRegs(rs);
             break;
-        // STA
+        // LMX
         case 0x4:
-            address = SYS_HL + offset;
-            valS = readRegs(rs);
-            write(address, valS);
+            memoryLimitMax = readRegs(rs);
             break;
-        // LDA
+        // IRA
         case 0x5:
-            address = SYS_HL + offset;
-            valRam = read(address);
-            writeRegs(rd, valRam);
+            interruptResolverAddress = SYS_HL;
             break;
-        // BLA
+        // SRA
         case 0x6:
-            if (evalCond(cond)) {
-                pointer tmp = ip;
-                ip = SYS_HL;
-                SYS_HL = tmp;
-                writeRegs(6, SYS_HL >> 8);
-                writeRegs(7, getByte(SYS_HL));
-            }
+            syscallResolverAddress = SYS_HL;
             break;
         // IRT
         case 0x7:
             ip = interruptedIp;
             privilege = interruptedPrivilege;
             break;
-        // CAS
+        // INM
         case 0x8:
-            address = bytesToPointer(regs[4], 0) + HL;
-            valRam = read(address);
-            valT = readRegs(rt);
-            if (valRam == valT) {
-                valS = readRegs(rs);
-                write(address, valS);
-                casFlag = true;
-            } else {
-                casFlag = false;
-            }
+            printf("INFO:   IMD (instructions modified) is not relevant for a single cycle uncached cpu.\n");
             break;
         // SCL
         case 0x9:
-            syscallCalleeAddress = ip;
-            ip = regs[3];
+            writeRegs(6, ip >> 8);
+            writeRegs(7, getByte(ip));
+            ip = syscallResolverAddress;
             privilege = system;
             break;
         // LDI
@@ -316,29 +298,43 @@ void cycle() {
             break;
         // STR
         case 0xC:
-            address = bytesToPointer(regs[4], 0) + HL + offset;
+            address = HL + offset;
             valS = readRegs(rs);
             write(address, valS);
             break;
-        // LDR
+        // LOD
         case 0xD:
-            address = bytesToPointer(regs[4], 0) + HL + offset;
+            address = HL + offset;
             valRam = read(address);
             writeRegs(rd, valRam);
             break;
-        // BLR
+        // BAL
         case 0xE:
             if (evalCond(cond)) {
                 pointer tmp = ip;
-                ip = bytesToPointer(regs[4], 0) + HL;
-                HL = tmp - bytesToPointer(regs[4], 0);
-                writeRegs(14, HL >> 8);
-                writeRegs(15, getByte(HL));
+                ip = HL;
+                HL = tmp - bytesToPointer(memoryLimitMin, 0);
+                if (privilege == system) {
+                    writeRegs(6, HL >> 8);
+                    writeRegs(7, getByte(HL));
+                } else {
+                    writeRegs(14, HL >> 8);
+                    writeRegs(15, getByte(HL));
+                }
             }
             break;
-        // INM
+        // CAS
         case 0xF:
-            printf("INFO:   IMD (instructions modified) is not relevant for a single cycle uncached cpu.\n");
+            address = HL;
+            valRam = read(address);
+            valT = readRegs(rt);
+            if (valRam == valT) {
+                valS = readRegs(rs);
+                write(address, valS);
+                casFlag = true;
+            } else {
+                casFlag = false;
+            }
             break;
         default:
             printf("Unimplemented opcode: %x\n", opcode);
@@ -354,7 +350,7 @@ void causeInterrupt(word id) {
     interruptedIp = ip;
     interruptedPrivilege = privilege;
     regs[0] = id;
-    ip = regs[1];
+    ip = interruptResolverAddress;
     waitingForInterrupt = false;
 }
 

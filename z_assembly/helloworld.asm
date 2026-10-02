@@ -29,16 +29,16 @@ ldi i 0
     ; char = *string
     mov sysH stringH
     mov sysL stringL
-    lda char 0
+    lod char 0
     ; if (char == 0) {break;}
     ldi sysH .endOfLoop.h
     ldi sysL .endOfLoop.l
     cmp char r8
-    bla equal
+    bal equal
     ; *terminal = char;
     mov sysH terminalH
     mov sysL terminalL
-    sta char 0
+    str char 0
     ; string++;
     ldi r11 1
     add stringL r11
@@ -50,7 +50,7 @@ ldi i 0
     ; branch back
     ldi sysH .loop.h
     ldi sysL .loop.l
-    bla true
+    bal true
 ; end of loop
 .endOfLoop:
 wfi

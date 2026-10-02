@@ -11,26 +11,22 @@ string_escapes = {
     "\'": "\'"
 }
 
-instructions = ["wfi", "srt", "ien", "idi", "sta", "lda", "bla", "irt",
-                "cas", "scl", "ldi", "alu", "str", "ldr", "blr", "inm"]
+instructions = ["wfi", "srt", "ist", "lmn", "lmx", "ira", "sra", "irt",
+                "inm", "scl", "ldi", "alu", "str", "lod", "bal", "cas"]
 registers = ["r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
              "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"]
+
 word_registers = {"interrupt_id": 0,
                   "interruptid": 0,
-                  "interrupt_resolver_address": 1,
-                  "interruptresolveraddress": 1,
-                  "syscall_callee_address": 2,
-                  "syscallcalleeaddress": 2,
-                  "syscall_resolver_address": 3,
-                  "syscallresolveraddress": 3,
-                  "memory_limit_min": 4,
-                  "memorylimitmin": 4,
-                  "memory_limit_max": 5,
-                  "memorylimitmax": 5,
-                  "sys0": 6,
+                  "sys0": 1,
+                  "sys1": 2,
+                  "sys2": 3,
+                  "sys3": 4,
+                  "sys4": 5,
+                  "sys5": 6,
                   "sys_h": 6,
                   "sysh": 6,
-                  "sys1": 7,
+                  "sys6": 7,
                   "sys_l": 7,
                   "sysl": 7,
                   "zero": 8,
@@ -89,12 +85,13 @@ symbol_operations = {"+": 0,
                      "|": 9,
                      "^": 10}
 
-no_operand = ["wfi", "ien", "idi", "irt", "scl", "inm"]
-flag_only = ["srt"]
-rs_offset = ["sta", "str"]
-rd_offset = ["lda", "ldr"]
-cond_only = ["bla", "blr"]
+no_operand = ["wfi", "srt", "ira", "sra", "irt", "inm", "scl"]
+bool_only = ["ist"]
+rd_only = ["rsh"]
+rs_only = ["lmn", "lmx"]
+cond_only = ["bal"]
+rs_offset = ["str"]
+rd_offset = ["lod"]
+rs_rt = ["cas"]
 rd_immediate = ["ldi"]
 rd_rs_operation = ["alu"]
-rs_rt = ["cas"]
-rd_only = ["rsh"]

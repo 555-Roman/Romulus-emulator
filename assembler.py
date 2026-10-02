@@ -200,10 +200,18 @@ for ip, tokens in ip_line_pair:
         if tokens[0] in no_operand:
             output[ip] = opcode << 4
             output[ip+1] = 0
-        elif tokens[0] in flag_only:
-            flag = int(tokens[1], 0) & 1
+        elif tokens[0] in bool_only:
+            value = int(tokens[1], 0) & 1
             output[ip] = opcode << 4
-            output[ip+1] = flag << 4
+            output[ip+1] = value << 4
+        elif tokens[0] in rs_only:
+            rs = get_register_value(tokens[1])
+            output[ip] = opcode << 4
+            output[ip+1] = rs << 4
+        elif tokens[0] in cond_only:
+            condition = get_condition_value(tokens[1]) & 15
+            output[ip] = (opcode << 4)
+            output[ip+1] = condition
         elif tokens[0] in rs_offset:
             rs = get_register_value(tokens[1])
             try:
@@ -222,10 +230,11 @@ for ip, tokens in ip_line_pair:
                 offset = 0
             output[ip] = (opcode << 4) | rd
             output[ip+1] = offset
-        elif tokens[0] in cond_only:
-            condition = get_condition_value(tokens[1]) & 15
+        elif tokens[0] in rs_rt:
+            rs = get_register_value(tokens[1])
+            rt = get_register_value(tokens[2])
             output[ip] = (opcode << 4)
-            output[ip+1] = condition
+            output[ip+1] = (rs << 4) | rt
         elif tokens[0] in rd_immediate:
             rd = get_register_value(tokens[1])
             try:
@@ -244,11 +253,6 @@ for ip, tokens in ip_line_pair:
             operation = get_operation_value(tokens[3])
             output[ip] = (opcode << 4) | rd
             output[ip+1] = (rs << 4) | operation
-        elif tokens[0] in rs_rt:
-            rs = get_register_value(tokens[1])
-            rt = get_register_value(tokens[2])
-            output[ip] = (opcode << 4)
-            output[ip+1] = (rs << 4) | rt
         else:
             print(f"ERROR:  what")
     elif tokens[0] in operations:
@@ -261,6 +265,9 @@ for ip, tokens in ip_line_pair:
         operation = get_operation_value(tokens[0])
         output[ip] = (opcode << 4) | rd
         output[ip+1] = (rs << 4) | operation
+
+        print("eee", tokens[0], opcode, rd, rs)
+        print(ip, hex(output[ip])[2:], hex(output[ip+1])[2:])
     else:
         print(f"ERROR:  what is '{tokens[0]}'?")
 

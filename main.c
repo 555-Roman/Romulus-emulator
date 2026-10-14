@@ -165,12 +165,15 @@ word performOperation(word valA, word valB, nybble operation) {
             result = (valA + valB) >> 1;
             break;
         case 0x5:
-            result = valB;
+            result = (valA + valB) >> 1;
+            result |= (result & 0b01000000) << 1;
             break;
         case 0x6:
+            result = valB;
+            break;
+        case 0x7:
             result = valA;
             break;
-        // case 0x7:
         case 0x8:
             result = valA & valB;
             break;
@@ -202,7 +205,7 @@ word performOperation(word valA, word valB, nybble operation) {
 
     zeroFlag = false;
     carryFlag = false;
-    if (result > maxWord) {
+    if (result & 0x100) {
         carryFlag = true;
     }
     result = getWord(result);
@@ -458,7 +461,7 @@ int main(int argc, char* argv[]) {
     /* DEVICES */
 
 
-    loadBinary("z_binaries/helloworld.bin", 0);
+    loadBinary("z_binaries/printregister.bin", 0);
 
 
     while (!WindowShouldClose()) {

@@ -76,7 +76,7 @@ conditions = {"never": 0,
               "lessthan": 10,
               "<": 10}
 negations = ["!", "n", "not", "not_"]
-operations = ["add", "adc", "sub", "sbb", "rsh", "mov", "cmp", "[reserved]",
+operations = ["add", "adc", "sub", "sbb", "lrs", "ars", "mov", "cmp",
               "and", "ior", "xor", "imp", "nnd", "nor", "xnr", "nim"]
 symbol_operations = {"+": 0,
                      "-": 2,
@@ -87,7 +87,7 @@ symbol_operations = {"+": 0,
 
 no_operand = ["wfi", "srt", "ira", "sra", "irt", "inm", "scl"]
 bool_only = ["ist"]
-rd_only = ["rsh"]
+rd_only = ["lrs", "ars"]
 rs_only = ["lmn", "lmx"]
 cond_only = ["bal"]
 rs_offset = ["str"]

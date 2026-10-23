@@ -1,0 +1,60 @@
+// functions:
+function_declaration = type IDENTIFIER "(" function_parameters? ")" block ;
+function_parameters = type IDENTIFIER ("," type IDENTIFIER)* ;
+
+// return:
+return = "return" expression ";" ;
+
+// control flow:
+if = "if" "(" expression | flag ")" block
+     ("elif" "(" expression ")" block)*
+     ("else" block)? ;
+while = "while" "(" expression | flag_condition ")" block ;
+flag_condition = "!"? "(" flag ("|" flag)* ")" ;
+flag = "zero" | "carry" | "cas" ;
+
+// low level control flow:
+label = IDENTIFIER ":" ;
+goto = "goto" IDENTIFIER ";" ;
+
+// data:
+struct_declaration = "struct" IDENTIFIER "{" (type IDENTIFIER ";")+ "}" ;
+enum_declaration = "enum" IDENTIFIER "{" (enum_value ";")+ "}" ;
+enum_value = IDENTIFIER ("=" INTEGER)? ;
+
+// variables:
+variable_declaration = type IDENTIFIER ";" ;
+
+// assembly:
+assembly = "asm" "(" assembly_info ("," assembly_info)* ")" assembly_block ;
+assembly_info = ("in" | "out") IDENTIFIER "@" REGISTER ;
+assembly_block = "{" ASSEMBLY* "}" ;
+
+// misc:
+block = "{" statement* "}" ;
+assignment = assignable "=" expression ";" ;
+assignable = IDENTIFIER | call_or_access | member | pointer_value ;
+statement = variable_declaration | assignment | function_declaration |
+            assembly | return | if | while | label | goto | struct_declaration | (expression ";") ;
+cast = "cast" "<" type ">" "(" expression ")" ;
+type = "u8" | "i8" | "bool" | "ptr" "<" type ">" | "void" | "uint" "<" INTEGER ">" | "sint" "<" INTEGER ">" | IDENTIFIER ;
+
+// expression:
+expression = logic_or
+logic_or = logic_and ("||" logic_and)* ;
+logic_and = comparison ("&&" comparison)*
+comparison = bitwise_or (("==" | "!=" | ">" | ">=" | "<" | "<=") bitwise_or)? ;
+bitwise_or = bitwise_xor ("|" bitwise_xor)* ;
+bitwise_xor = bitwise_and ("^" bitwise_and)* ;
+bitwise_and = term ("&" term)* ;
+term = factor (("+" | "-") factor)* ;
+factor = unary (("*" | "/") unary)* ;
+unary = (("-" | "!" | "~" | ">>" | "$") unary) | call_or_access ;
+call_or_access = primary ( call | access | member )* ;
+call = ("(" arguments? ")") ;
+arguments = expression ("," expression)* ;
+access = "[" expression "]" ;
+member = "." IDENTIFIER ;
+primary = IDENTIFIER | INTEGER | "true" | "false" | grouping | pointer_value ;
+grouping = "(" expression ")" ;
+pointer_value = "[" expression "]" ;

@@ -1,17 +1,12 @@
 from assembler_data import *
 
-def assemble(file_path: str, DEBUG: bool = False):
-    with open("z_assembly/" + file_path + ".asm", 'r') as assembly_file:
-        # lines = [line.split(";")[0].strip().lower() for line in assembly_file.readlines()]
-        text = "".join(assembly_file.readlines())
-
+def assemble(text: str, debug: bool = False) -> bytearray:
     file_tokens = []
     i = 0
     is_string = False
     string_delimiter = ""
     current_lexeme = ""
     current_line = []
-    in_comment = False
     while i < len(text):
         char = text[i]
         if is_string:
@@ -33,14 +28,14 @@ def assemble(file_path: str, DEBUG: bool = False):
                 is_string = True
                 string_delimiter = char
                 current_lexeme += char
-            elif char == " ":
-                if current_lexeme.strip(" ") != "":
+            elif char in " \t":
+                if current_lexeme.strip(" \t") != "":
                     if current_lexeme[0] not in ["'", '"']:
                         current_lexeme = current_lexeme.lower()
                     current_line.append(current_lexeme)
                     current_lexeme = ""
             elif char == "\n":
-                if current_lexeme.strip(" ") != "":
+                if current_lexeme.strip(" \t") != "":
                     if current_lexeme[0] not in ["'", '"']:
                         current_lexeme = current_lexeme.lower()
                     current_line.append(current_lexeme)
@@ -52,13 +47,13 @@ def assemble(file_path: str, DEBUG: bool = False):
                 while char != "\n":
                     i += 1
                     if i >= len(text):
-                        break;
+                        break
                     char = text[i]
             else:
                 current_lexeme += char
         i += 1
 
-    if DEBUG:
+    if debug:
         print("FILE TOKENS:")
         print(file_tokens)
         print()
@@ -92,7 +87,6 @@ def assemble(file_path: str, DEBUG: bool = False):
             increment = 2
         elif tokens[0] == "data":
             data = tokens[1]
-            print(f"data: '{data}'")
             if len(data) >= 3 and data[0] == '"' and data[-1] == '"':
                 increment = len(data) - 2
             elif len(data) >= 3 and data[0] == "'" and data[-1] == "'":
@@ -101,7 +95,7 @@ def assemble(file_path: str, DEBUG: bool = False):
                 try:
                     tmp = int(data, 0)
                     increment = tmp.bit_length() // 8 + 1
-                except:
+                except ValueError:
                     pass
 
         if increment != 0:
@@ -114,7 +108,7 @@ def assemble(file_path: str, DEBUG: bool = False):
 
 
 
-    if DEBUG:
+    if debug:
         print("IP LINE PAIR:")
         print(ip_line_pair)
         print()
@@ -140,44 +134,45 @@ def assemble(file_path: str, DEBUG: bool = False):
         tmp += [(ip, tmp_tokens)]
     ip_line_pair = tmp
 
-    if DEBUG:
+    if debug:
         print("IP LINE PAIR:")
         print(ip_line_pair)
         print()
 
 
-    if DEBUG:
+    if debug:
         print("min ip:", min_ip)
         print("max ip:", max_ip)
         print()
 
     output = bytearray(max_ip - min_ip)
 
-    def get_register_value(string: str) -> int:
-        if string in registers:
-            return registers.index(string)
-        if string in word_registers.keys():
-            return word_registers[string]
+    def get_register_value(register_string: str) -> int:
+        if register_string in registers:
+            return registers.index(register_string)
+        if register_string in word_registers.keys():
+            return word_registers[register_string]
 
-        print(f"ERROR:  unknown source register '{string}'")
+        print(f"ERROR:  unknown source register '{register_string}'")
         return 0
-    def get_condition_value(string: str) -> int:
-        if string in conditions.keys():
-            return conditions[string]
+    def get_condition_value(condition_string: str) -> int:
+        if condition_string in conditions.keys():
+            return conditions[condition_string]
         for negation in negations:
-            if string.removesuffix(negation) in conditions.keys():
-                return conditions[string.removesuffix(negation)] + 8
-        print(f"ERROR:  unknown condition '{string}'")
+            if condition_string.removesuffix(negation) in conditions.keys():
+                return conditions[condition_string.removesuffix(negation)] + 8
+        print(f"ERROR:  unknown condition '{condition_string}'")
         return 0
-    def get_operation_value(string: str) -> int:
-        if string in operations:
-            return operations.index(string)
-        if string in symbol_operations.keys():
-            return symbol_operations[string]
-        print(f"ERROR:  unknown operation '{string}'")
+    def get_operation_value(operation_string: str) -> int:
+        if operation_string in operations:
+            return operations.index(operation_string)
+        if operation_string in symbol_operations.keys():
+            return symbol_operations[operation_string]
+        print(f"ERROR:  unknown operation '{operation_string}'")
         return 0
 
     for ip, tokens in ip_line_pair:
+        ip = ip - min_ip
         if tokens[0] == "data":
             data = tokens[1]
             if len(data) == 3 and data[0] == "'" and data[-1] == "'":
@@ -185,12 +180,10 @@ def assemble(file_path: str, DEBUG: bool = False):
             elif len(data) >= 3 and data[0] == '"' and data[-1] == '"':
                 for char in data[1:-1]:
                     output[ip] = ord(char)
-                    ip += 1
             else:
                 value = int(data, 0)
                 for i in range(value.bit_length() // 8):
                     output[ip] = (value >> (i * 8)) & 255
-                    ip += 1
         elif tokens[0] in instructions:
             opcode = instructions.index(tokens[0])
             if tokens[0] in no_operand:
@@ -212,7 +205,7 @@ def assemble(file_path: str, DEBUG: bool = False):
                 rs = get_register_value(tokens[1])
                 try:
                     offset = int(tokens[2], 0) & 15
-                except:
+                except ValueError:
                     print("problem with offset:", tokens[2])
                     offset = 0
                 output[ip] = opcode << 4
@@ -221,7 +214,7 @@ def assemble(file_path: str, DEBUG: bool = False):
                 rd = get_register_value(tokens[1])
                 try:
                     offset = int(tokens[2], 0) & 15
-                except:
+                except ValueError:
                     print("problem with offset:", tokens[2])
                     offset = 0
                 output[ip] = (opcode << 4) | rd
@@ -235,7 +228,7 @@ def assemble(file_path: str, DEBUG: bool = False):
                 rd = get_register_value(tokens[1])
                 try:
                     immediate = int(tokens[2], 0) & 255
-                except:
+                except ValueError:
                     if len(tokens[2]) == 3 and tokens[2][0] == "'" and tokens[2][-1] == "'":
                         immediate = ord(tokens[2][1])
                     else:
@@ -264,24 +257,27 @@ def assemble(file_path: str, DEBUG: bool = False):
         else:
             print(f"ERROR:  what is '{tokens[0]}'?")
 
-    with open("z_binaries/" + file_path + ".bin", 'wb') as binary_file:
-        binary_file.write(output)
-
-    if DEBUG:
+    if debug:
         print("MEMORY DUMP:")
         for address in range(min_ip // 16 * 16, (max_ip+2) // 16 * 16 + 16):
-            if address % 16 == 0:
+            if (address) % 16 == 0:
                 string = hex(address)[2:].rjust(4, '0')
                 print(string, end='    ')
             try:
-                string = hex(output[address])[2:].rjust(2, '0')
-            except:
+                string = hex(output[address-min_ip])[2:].rjust(2, '0')
+            except IndexError:
                 string = "00"
             print(string, end=' ')
             if address % 16 == 15:
                 print()
 
+    return output
+
 if __name__ == "__main__":
-    file_path = input("What assembly file to compile: ")
-    if file_path.endswith(".asm"): file_path = file_path[:-4];
-    assemble(file_path)
+    file_path = input("What assembly file to assemble: ")
+    if file_path.endswith(".asm"): file_path = file_path[:-4]
+    with open("z_assembly/" + file_path + ".asm", 'r') as assembly_file:
+        global_text = "".join(assembly_file.readlines())
+    global_output = assemble(global_text)
+    with open("z_binaries/" + file_path + ".bin", 'wb') as binary_file:
+        binary_file.write(global_output)

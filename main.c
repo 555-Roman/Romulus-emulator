@@ -461,7 +461,8 @@ int main(int argc, char* argv[]) {
     /* DEVICES */
 
 
-    loadBinary("z_binaries/printregister.bin", 0);
+    loadBinary("z_binaries/returntester.bin", 0);
+    loadBinary("z_binaries/return.bin", 0x1000);
 
 
     while (!WindowShouldClose()) {

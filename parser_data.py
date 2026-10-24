@@ -1,3 +1,6 @@
+from lexer import *
+
+
 class ASTNode:
     pass
 
@@ -14,6 +17,14 @@ class Constant(Expression):
 
     def __repr__(self):
         return f"Constant({self.value})"
+
+class UnaryOperation(Expression):
+    def __init__(self, operator: Token, operand: Expression):
+        self.operator = operator
+        self.operand = operand
+
+    def __repr__(self):
+        return f"UnaryOperation({self.operator}{self.operand})"
 
 class Return(Statement):
     def __init__(self, expression: Expression):

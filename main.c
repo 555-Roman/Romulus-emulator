@@ -462,7 +462,7 @@ int main(int argc, char* argv[]) {
 
 
     loadBinary("z_binaries/returntester.bin", 0);
-    loadBinary("z_binaries/return.bin", 0x1000);
+    loadBinary("z_binaries/zTests_unary.bin", 0x1000);
 
 
     while (!WindowShouldClose()) {

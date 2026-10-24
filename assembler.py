@@ -155,14 +155,16 @@ def assemble(text: str, debug: bool = False) -> bytearray:
 
         print(f"ERROR:  unknown source register '{register_string}'")
         return 0
+
     def get_condition_value(condition_string: str) -> int:
         if condition_string in conditions.keys():
             return conditions[condition_string]
         for negation in negations:
-            if condition_string.removesuffix(negation) in conditions.keys():
-                return conditions[condition_string.removesuffix(negation)] + 8
+            if condition_string.removeprefix(negation) in conditions.keys():
+                return conditions[condition_string.removeprefix(negation)] + 8
         print(f"ERROR:  unknown condition '{condition_string}'")
         return 0
+
     def get_operation_value(operation_string: str) -> int:
         if operation_string in operations:
             return operations.index(operation_string)

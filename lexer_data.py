@@ -10,6 +10,9 @@ class TokenType(Enum):
     KEYWORD = auto()
     IDENTIFIER = auto()
     INTEGER_LITERAL = auto()
+    MINUS = auto()
+    BITWISE_NOT = auto()
+    LOGICAL_NOT = auto()
 
 
 keywords = [

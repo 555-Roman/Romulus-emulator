@@ -23,6 +23,12 @@ class Lexer:
                     tokens.append(Token(TokenType.CLOSE_PARENTHESIS, char, self.line))
                 case ";":
                     tokens.append(Token(TokenType.SEMICOLON, char, self.line))
+                case "-":
+                    tokens.append(Token(TokenType.MINUS, char, self.line))
+                case "!":
+                    tokens.append(Token(TokenType.LOGICAL_NOT, char, self.line))
+                case "~":
+                    tokens.append(Token(TokenType.BITWISE_NOT, char, self.line))
                 case " ":
                     pass
                 case "\t":

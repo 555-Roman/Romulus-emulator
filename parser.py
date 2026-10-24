@@ -1,4 +1,3 @@
-from lexer import *
 from parser_data import *
 
 
@@ -34,11 +33,25 @@ class Parser:
         return Return(expression)
 
     def parse_expression(self) -> Expression:
-        return self.parse_constant()
+        return self.parse_unary()
+
+    def parse_unary(self) -> Expression:
+        token = self.next()
+        if token.token_type in [TokenType.MINUS, TokenType.LOGICAL_NOT, TokenType.BITWISE_NOT]:
+            self.index += 1
+            operand = self.parse_unary()
+            return UnaryOperation(token, operand)
+        else:
+            return self.parse_constant()
 
     def parse_constant(self) -> Constant:
         token = self.expect(TokenType.INTEGER_LITERAL)
         return Constant(token.value)
+
+    def next(self) -> Token:
+        if self.index >= len(self.tokens):
+            parsing_error(f"Expected token but reached end of file.")
+        return self.tokens[self.index]
 
     def expect(self, token_type: TokenType) -> Token:
         if self.index >= len(self.tokens):

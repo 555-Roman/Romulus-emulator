@@ -36,6 +36,8 @@ class Lexer:
                     else:
                         print(f"Unrecognized character '{char}' after '>'")
                         exit(1)
+                case "+":
+                    tokens.append(Token(TokenType.PLUS, char, self.line))
                 case " ":
                     pass
                 case "\t":

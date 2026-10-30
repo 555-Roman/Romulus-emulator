@@ -14,6 +14,7 @@ class TokenType(Enum):
     BITWISE_NOT = auto()
     LOGICAL_NOT = auto()
     LOGICAL_RIGHT_SHIFT = auto()
+    PLUS = auto()
 
 
 keywords = [

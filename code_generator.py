@@ -43,7 +43,18 @@ class CodeGenerator:
                     case TokenType.LOGICAL_RIGHT_SHIFT:
                         return subexpression + f"\tLRS r9\n"
                     case _:
-                        print(f"Unimplemented {expression.operator.token_type}")
+                        print(f"Unimplemented unary operation {expression.operator.token_type}")
+                        exit(-1)
+            case BinaryOperation():
+                left = self.generate_expression(expression.left)
+                right = self.generate_expression(expression.right)
+                match expression.operator.token_type:
+                    case TokenType.PLUS:
+                        return left + "\tMOV r11 r9\n" + right + "\tADD r9 r11\n"
+                    case TokenType.MINUS:
+                        return left + "\tMOV r11 r9\n" + right + "\tSUB r9 r11\n"
+                    case _:
+                        print(f"Unimplemented binary operation {expression.operator.token_type}")
                         exit(-1)
             case _:
                 print(f"Unimplemented expression {type(expression)}.")

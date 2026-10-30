@@ -24,7 +24,16 @@ class UnaryOperation(Expression):
         self.operand = operand
 
     def __repr__(self):
-        return f"UnaryOperation({self.operator}{self.operand})"
+        return f"UnaryOperation({self.operator} {self.operand})"
+
+class BinaryOperation(Expression):
+    def __init__(self, left: Expression, operator: Token, right: Expression):
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+    def __repr__(self):
+        return f"BinaryOperation({self.left} {self.operator} {self.right})"
 
 class Return(Statement):
     def __init__(self, expression: Expression):

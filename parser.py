@@ -33,7 +33,15 @@ class Parser:
         return Return(expression)
 
     def parse_expression(self) -> Expression:
-        return self.parse_unary()
+        return self.parse_binary()
+
+    def parse_binary(self) -> Expression:
+        left = self.parse_unary()
+        while (operator := self.next()).token_type in [TokenType.PLUS, TokenType.MINUS]:
+            self.index += 1
+            right = self.parse_unary()
+            left = BinaryOperation(left, operator, right)
+        return left
 
     def parse_unary(self) -> Expression:
         token = self.next()

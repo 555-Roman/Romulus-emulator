@@ -40,6 +40,8 @@ class CodeGenerator:
                     case TokenType.LOGICAL_NOT:
                         label = self.get_label()
                         return subexpression + f"\tCMP r9 r8\n\tLDI r9 0\n\tLDI sysH {label}.h\n\tLDI sysL {label}.l\n\tBAL not_equal\n\tLDI r9 1\n{label}:\n"
+                    case TokenType.LOGICAL_RIGHT_SHIFT:
+                        return subexpression + f"\tLRS r9\n"
                     case _:
                         print(f"Unimplemented {expression.operator.token_type}")
                         exit(-1)

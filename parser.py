@@ -37,7 +37,7 @@ class Parser:
 
     def parse_unary(self) -> Expression:
         token = self.next()
-        if token.token_type in [TokenType.MINUS, TokenType.LOGICAL_NOT, TokenType.BITWISE_NOT]:
+        if token.token_type in [TokenType.MINUS, TokenType.LOGICAL_NOT, TokenType.BITWISE_NOT, TokenType.LOGICAL_RIGHT_SHIFT]:
             self.index += 1
             operand = self.parse_unary()
             return UnaryOperation(token, operand)

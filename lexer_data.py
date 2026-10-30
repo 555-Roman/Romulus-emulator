@@ -13,6 +13,7 @@ class TokenType(Enum):
     MINUS = auto()
     BITWISE_NOT = auto()
     LOGICAL_NOT = auto()
+    LOGICAL_RIGHT_SHIFT = auto()
 
 
 keywords = [

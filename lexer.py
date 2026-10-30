@@ -29,6 +29,13 @@ class Lexer:
                     tokens.append(Token(TokenType.LOGICAL_NOT, char, self.line))
                 case "~":
                     tokens.append(Token(TokenType.BITWISE_NOT, char, self.line))
+                case ">":
+                    if (char := self.next()) == ">":
+                        self.index += 1
+                        tokens.append(Token(TokenType.LOGICAL_RIGHT_SHIFT, ">>", self.line))
+                    else:
+                        print(f"Unrecognized character '{char}' after '>'")
+                        exit(1)
                 case " ":
                     pass
                 case "\t":
@@ -53,6 +60,11 @@ class Lexer:
             self.index += 1
 
         return tokens
+
+    def next(self) -> str:
+        if self.index+1 >= len(self.text):
+            return ""
+        return self.text[self.index+1]
 
     def get_integer_string(self) -> str:
         constructed_string = ""
